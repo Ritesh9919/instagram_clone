@@ -5,6 +5,10 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 
 import { connectDB } from "./config/database.js";
+import errorHandlerMiddleware from "./middlewares/errorHandler.middleware.js";
+
+// router
+import userRouter from "./routes/user.route.js";
 
 const PORT = 8000;
 
@@ -24,6 +28,9 @@ app.use(
 app.get("/", (req, res) => {
   res.send("Hello World");
 });
+
+app.use("/api/users", userRouter);
+app.use(errorHandlerMiddleware);
 
 connectDB()
   .then(() => {
