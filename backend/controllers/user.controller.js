@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import getDataUri from "../utils/dataUri.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import bcrypt from "bcryptjs";
 
 export const register = async (req, res, next) => {
   try {
@@ -26,26 +27,32 @@ export const register = async (req, res, next) => {
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+
     if (!email || !password) {
       return next(new ApiError("Both fields are required", 400));
     }
-    const user = await User.findOne({ email }).select("-password");
+    const user = await User.findOne({ email });
+
     if (!user) {
       return next(new ApiError("User not found", 404));
     }
+
     const isPasswordCurrect = await user.comparePassword(password);
+
     if (!isPasswordCurrect) {
       return next(new ApiError("Invalid Credentials", 401));
     }
-    const token = await user.generateToken();
+
+    const loginUser = await User.findById(user._id).select("-password");
+    const token = user.generateToken();
     return res
       .cookie("token", token, {
         httpOnly: true,
-        expires: 1 * 24 * 60 * 60 * 1000,
       })
       .status(200)
-      .json(new ApiResponse(true, "Login successfully", user));
+      .json(new ApiResponse(true, "Login successfully", loginUser));
   } catch (error) {
+    console.log(error);
     next(error);
   }
 };
@@ -76,12 +83,13 @@ export const editProfile = async (req, res, next) => {
   try {
     const { bio, gender } = req.body;
     const profilePicture = req.file;
+
     if (req.user.userId !== req.params.userId) {
       return next(
         new ApiError("You are not allowed to edit this profile", 403)
       );
     }
-    const user = await User.findById(req.params.userId);
+    const user = await User.findById(req.params.userId).select("-password");
     if (!user) {
       return next(new ApiError("User not found", 404));
     }
@@ -98,13 +106,14 @@ export const editProfile = async (req, res, next) => {
       user.gender = gender;
     }
     if (profilePicture) {
-      user.profilePicture = cloudinaryResponse.secure_Url;
+      user.profilePicture = cloudinaryResponse.secure_url;
     }
     await user.save();
     return res
       .status(200)
       .json(new ApiResponse(true, "Profile updated successfully", user));
   } catch (error) {
+    console.log(error);
     next(error);
   }
 };
