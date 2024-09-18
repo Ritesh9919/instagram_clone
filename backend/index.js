@@ -9,6 +9,7 @@ import errorHandlerMiddleware from "./middlewares/errorHandler.middleware.js";
 
 // router
 import userRouter from "./routes/user.route.js";
+import postRouter from "./routes/post.route.js";
 
 const PORT = 8000;
 
@@ -30,6 +31,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/users", userRouter);
+app.use("/api/posts", postRouter);
 app.use(errorHandlerMiddleware);
 
 connectDB()

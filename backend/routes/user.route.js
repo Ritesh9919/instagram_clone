@@ -10,7 +10,7 @@ import {
   followUnfollowUser,
 } from "../controllers/user.controller.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
-import upload from "../middlewares/multer.middleware.js";
+import { upload } from "../middlewares/multer.middleware.js";
 router.post("/register", register);
 router.post("/login", login);
 router.post("/logout", verifyJwt, logout);

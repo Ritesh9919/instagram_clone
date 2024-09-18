@@ -1,9 +1,8 @@
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import getDataUri from "../utils/dataUri.js";
+import { getDataUri } from "../utils/dataUri.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
-import bcrypt from "bcryptjs";
 
 export const register = async (req, res, next) => {
   try {
