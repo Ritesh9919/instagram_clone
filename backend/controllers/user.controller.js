@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { getDataUri } from "../utils/dataUri.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { Post } from "../models/post.model.js";
 
 export const register = async (req, res, next) => {
   try {
@@ -30,7 +31,7 @@ export const login = async (req, res, next) => {
     if (!email || !password) {
       return next(new ApiError("Both fields are required", 400));
     }
-    const user = await User.findOne({ email });
+    let user = await User.findOne({ email });
 
     if (!user) {
       return next(new ApiError("User not found", 404));
@@ -42,14 +43,33 @@ export const login = async (req, res, next) => {
       return next(new ApiError("Invalid Credentials", 401));
     }
 
-    const loginUser = await User.findById(user._id).select("-password");
+    const populatedPosts = await Promise.all(
+      user.posts.map(async (postId) => {
+        const post = await Post.findById(postId);
+        if (post.author.equals(user._id)) {
+          return post;
+        }
+        return null;
+      })
+    );
+
     const token = user.generateToken();
+    user = {
+      id: user._id,
+      username: user.username,
+      profilePicture: user.profilePicture,
+      email: user.email,
+      bio: user.bio,
+      followers: user.followers,
+      following: user.following,
+      posts: populatedPosts,
+    };
     return res
       .cookie("token", token, {
         httpOnly: true,
       })
       .status(200)
-      .json(new ApiResponse(true, "Login successfully", loginUser));
+      .json(new ApiResponse(true, "Login successfully", user));
   } catch (error) {
     console.log(error);
     next(error);
