@@ -4,8 +4,10 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -30,6 +32,7 @@ function Login() {
       );
       if (data.success) {
         toast.success(data.message);
+        navigate("/");
       }
     } catch (error) {
       toast.error(error.response.data.message);
@@ -74,8 +77,14 @@ function Login() {
         </div>
 
         <Button disabled={loading} type="submit">
-          {loading ? "Loading..." : "Log In"}
+          {loading ? "Loading..." : "Login"}
         </Button>
+        <span>
+          Does't have account?{" "}
+          <Link to="/signup" className="text-blue-600">
+            Signin
+          </Link>
+        </span>
       </form>
     </div>
   );
